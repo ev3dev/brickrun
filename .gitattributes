@@ -1,0 +1,10 @@
+*   text=auto
+
+.gitattributes text
+.gitignore text
+.gitmodules text
+*.cmake text
+*.json text
+*.md text
+*.txt text
+*.vala text

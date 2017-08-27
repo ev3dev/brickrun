@@ -1,0 +1,22 @@
+Source: brickrun
+Priority: optional
+Maintainer: David Lechner <david@lechnology.com>
+Build-Depends: debhelper (>= 10),
+    cmake (>= 3),
+    libglib2.0-dev,
+    pandoc,
+    pkg-config,
+    valac
+Standards-Version: 3.9.8
+Section: utils
+Homepage: https://github.com/ev3dev/brickrun
+Vcs-Git: https://github.com/ev3dev/brickrun.git
+Vcs-Browser: https://github.com/ev3dev/brickrun
+
+Package: brickrun
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, console-runner
+Description: Command line tool for launching ev3dev programs
+ This tool is used to launch ev3dev programs from the command line. It takes
+ care of things like running on a virtual console and stopping motors when the
+ user program ends.

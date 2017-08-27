@@ -1,0 +1,2 @@
+
+const string brickrun_version = "@PROJECT_VERSION@";
