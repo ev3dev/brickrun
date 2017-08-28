@@ -7,6 +7,7 @@ pkg_check_modules(BRICKRUN_DEPS REQUIRED
     gobject-2.0
     gio-2.0
     gio-unix-2.0
+    gudev-1.0
 )
 
 configure_file(version.vala.in version.vala @ONLY)
@@ -15,6 +16,7 @@ vala2c(BRICKRUN_C_FILES
     PACKAGES
         gio-2.0
         gio-unix-2.0
+        gudev-1.0
         posix
     TARGET_GLIB
         2.48

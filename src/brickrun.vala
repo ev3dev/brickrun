@@ -123,6 +123,62 @@ static void on_bus_name_vanished (DBusConnection connection, string name) {
     loop.quit ();
 }
 
+static void set_sysattr_value (string path, string sysattr, string value) {
+    var sysattr_path = Path.build_filename (path, sysattr);
+    var file = Posix.FILE.open (sysattr_path, "w");
+    if (file == null) {
+        warning ("Failed to open '%s': %s", path, strerror (errno));
+        return;
+    }
+    file.puts (value);
+}
+
+/*
+ * Brick status indication is imitating the official LEGO firmware.
+ * When a program is started, we blink the green LEDs. When a program
+ * ends, we go back to solid green. (Or blue for BrickPi.)
+ */
+static void set_leds (List<GUdev.Device> leds, bool start) {
+    foreach (var led in leds) {
+        var name = led.get_name ();
+        var path = led.get_sysfs_path ();
+
+        // the color and function are encoded in the name, so we have to extract them.
+
+        var last_colon = name.last_index_of (":");
+        if (last_colon == -1) {
+            continue;
+        }
+        var function = name.substring (last_colon + 1);
+        if (function != "brick-status") {
+            // we only care about brick-status LEDs.
+            continue;
+        }
+        var color = name.rstr_len (last_colon, ":");
+        if (color == null) {
+            // this should not happen in practice
+            continue;
+        }
+        last_colon = color.last_index_of (":");
+        color = color[1:last_colon];
+
+        // FIXME: If we have both green and blue leds, we should only use green.
+        // Or, we need a platform-specific way of dealing with LEDs.
+        if (color == "green" || color == "blue") {
+            if (start) {
+                set_sysattr_value (path, "trigger", "heartbeat");
+            }
+            else {
+                set_sysattr_value (path, "trigger", "default-on");
+            }
+        }
+        else {
+            set_sysattr_value (path, "trigger", "none");
+            set_sysattr_value (path, "brightness", "0");
+        }
+    }
+}
+
 static int main (string[] args) {
     Environment.set_prgname (Path.get_basename (args[0]));
 
@@ -157,8 +213,18 @@ static int main (string[] args) {
     var watch_id = Bus.watch_name (BusType.SYSTEM, console_runner_server_bus_name,
         BusNameWatcherFlags.NONE, on_bus_name_appeared, on_bus_name_vanished);
 
+    var udev_client = new GUdev.Client ({ "leds", "tacho-motor", "dc-motor" });
+    var leds = udev_client.query_by_subsystem ("leds");
+    if (leds != null) {
+        set_leds (leds, true);
+    }
+
     loop = new MainLoop ();
     loop.run();
+
+    if (leds != null) {
+        set_leds (leds, false);
+    }
 
     Bus.unwatch_name (watch_id);
 
