@@ -15,7 +15,7 @@ brickrun - Tool to run ev3dev programs on a remote virtual console.
 SYNOPSIS
 ========
 
-**brickrun** [**--directory=***dir*] [**--**] *command* [*arg* ...]]
+**brickrun** [**--directory=**\ *dir*] [**--**] *command* [*arg* ...]]
 
 
 DESCRIPTION
@@ -35,7 +35,7 @@ OPTIONS
 *arg* ...
     Additional arguments for *command*.
 
-**-d**, **--directory=***dir*
+**-d**, **--directory=**\ *dir*
     Specifies the working directory for the remote command. When omitted, the
     current working directory of the **brickrun** command is used.
 
