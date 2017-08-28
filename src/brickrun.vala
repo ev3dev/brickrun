@@ -272,6 +272,44 @@ static void stop_motors (List<GUdev.Device>? motors) {
     }
 }
 
+static void stop_sound (List<GUdev.Device>? inputs) {
+    if (inputs == null) {
+        return;
+    }
+    foreach (var input in inputs) {
+        if (!input.get_name ().has_prefix ("event")) {
+            // we are only interested in event nodes
+            continue;
+        }
+        var input_parent = input.get_parent_with_subsystem ("input", null);
+        if (input_parent == null) {
+            // this should not happend in practice
+            continue;
+        }
+        var snd_cap = input_parent.get_sysfs_attr_as_int ("capabilities/snd");
+        if ((snd_cap & Linux.Input.SND_TONE) == 0) {
+            continue;
+        }
+        var path = input.get_device_file ();
+        if (path == null) {
+            // this should not happen in practice
+            continue;
+        }
+        var file = Posix.FILE.open (path, "w");
+        if (file == null) {
+            warning ("Failed to open '%s': %s", path, strerror (errno));
+            return;
+        }
+        // stop any tones that might be playing
+        var tone = Linux.Input.Event() {
+            type = Linux.Input.EV_SND,
+            code = (ushort)Linux.Input.SND_TONE,
+            value = 0
+        };
+        file.write (&tone, sizeof(Linux.Input.Event), 1);
+    }
+}
+
 static int main (string[] args) {
     Environment.set_prgname (Path.get_basename (args[0]));
 
@@ -319,6 +357,8 @@ static int main (string[] args) {
     stop_motors (udev_client.query_by_subsystem ("tacho-motor"));
     stop_motors (udev_client.query_by_subsystem ("dc-motor"));
     stop_motors (udev_client.query_by_subsystem ("servo-motor"));
+
+    stop_sound (udev_client.query_by_subsystem ("input"));
 
     set_leds (leds, false);
 
