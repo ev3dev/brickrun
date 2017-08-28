@@ -35,7 +35,16 @@ const string extra_parameters = "[--] <command> [<args>...]";
 const string summary = "Runs a command remotely via console-runner-server.";
 const string description = "Note: If <args>... contains any command line options starting with '-', then it is necessary to use '--'.";
 
+static bool second_signal = false;
+
 static bool on_unix_signal (int sig) {
+    if (second_signal) {
+        // No more Mr. Nice Guy after the first signal.
+        sig = Posix.SIGKILL;
+    }
+    else {
+        second_signal = true;
+    }
     // signals are passed to the remote process
     try {
         client.signal (sig);
