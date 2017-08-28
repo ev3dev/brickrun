@@ -74,4 +74,4 @@ FILES
 SEE ALSO
 ========
 
-console-runner(1)
+**console-runner**\ (1)
