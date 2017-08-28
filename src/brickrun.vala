@@ -262,13 +262,16 @@ static void watch_stop_button () {
     }
 }
 
-static void stop_motors (List<GUdev.Device>? motors) {
+static void stop_motors (List<GUdev.Device>? motors, string command, string? stop_action = null) {
     if (motors == null) {
         return;
     }
     foreach (var motor in motors) {
         var path = motor.get_sysfs_path ();
-        set_sysattr_value (path, "command", "reset");
+        if (stop_action != null) {
+            set_sysattr_value (path, "stop_action", stop_action);
+        }
+        set_sysattr_value (path, "command", command);
     }
 }
 
@@ -354,9 +357,9 @@ static int main (string[] args) {
     loop = new MainLoop ();
     loop.run();
 
-    stop_motors (udev_client.query_by_subsystem ("tacho-motor"));
-    stop_motors (udev_client.query_by_subsystem ("dc-motor"));
-    stop_motors (udev_client.query_by_subsystem ("servo-motor"));
+    stop_motors (udev_client.query_by_subsystem ("tacho-motor"), "reset");
+    stop_motors (udev_client.query_by_subsystem ("dc-motor"), "stop", "coast");
+    stop_motors (udev_client.query_by_subsystem ("servo-motor"), "float");
 
     stop_sound (udev_client.query_by_subsystem ("input"));
 
