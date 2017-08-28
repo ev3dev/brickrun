@@ -179,6 +179,16 @@ static void set_leds (List<GUdev.Device> leds, bool start) {
     }
 }
 
+static void stop_motors (List<GUdev.Device>? motors) {
+    if (motors == null) {
+        return;
+    }
+    foreach (var motor in motors) {
+        var path = motor.get_sysfs_path ();
+        set_sysattr_value (path, "command", "reset");
+    }
+}
+
 static int main (string[] args) {
     Environment.set_prgname (Path.get_basename (args[0]));
 
@@ -213,7 +223,7 @@ static int main (string[] args) {
     var watch_id = Bus.watch_name (BusType.SYSTEM, console_runner_server_bus_name,
         BusNameWatcherFlags.NONE, on_bus_name_appeared, on_bus_name_vanished);
 
-    var udev_client = new GUdev.Client ({ "leds", "tacho-motor", "dc-motor" });
+    var udev_client = new GUdev.Client ({ "leds", "tacho-motor", "dc-motor", "servo-motor" });
     var leds = udev_client.query_by_subsystem ("leds");
     if (leds != null) {
         set_leds (leds, true);
@@ -221,6 +231,10 @@ static int main (string[] args) {
 
     loop = new MainLoop ();
     loop.run();
+
+    stop_motors (udev_client.query_by_subsystem ("tacho-motor"));
+    stop_motors (udev_client.query_by_subsystem ("dc-motor"));
+    stop_motors (udev_client.query_by_subsystem ("servo-motor"));
 
     if (leds != null) {
         set_leds (leds, false);
