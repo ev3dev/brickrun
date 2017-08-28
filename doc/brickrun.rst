@@ -21,21 +21,23 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-
+The **brickrun** command is used to run programs on ev3dev device. It takes
+care of things like console switching and stopping motors in case your program
+crashes.
 
 
 OPTIONS
 =======
 
 *command*
-    The command to run remotely on **conrun-server**.
+    The command to run remotely on the **conrun-server**.
 
 *arg* ...
     Additional arguments for *command*.
 
 **-d**, **--directory=***dir*
     Specifies the working directory for the remote command. When omitted, the
-    current working directory of the **conrun** command is used.
+    current working directory of the **brickrun** command is used.
 
 **-h**, **--help**
     Print a help message and exit.
