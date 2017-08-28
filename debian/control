@@ -4,6 +4,7 @@ Maintainer: David Lechner <david@lechnology.com>
 Build-Depends: debhelper (>= 10),
     cmake (>= 3),
     libglib2.0-dev,
+    libgudev-1.0-dev,
     pandoc,
     pkg-config,
     valac
