@@ -138,7 +138,10 @@ static void set_sysattr_value (string path, string sysattr, string value) {
  * When a program is started, we blink the green LEDs. When a program
  * ends, we go back to solid green. (Or blue for BrickPi.)
  */
-static void set_leds (List<GUdev.Device> leds, bool start) {
+static void set_leds (List<GUdev.Device>? leds, bool start) {
+    if (leds == null) {
+        return;
+    }
     foreach (var led in leds) {
         var name = led.get_name ();
         var path = led.get_sysfs_path ();
@@ -225,9 +228,7 @@ static int main (string[] args) {
 
     var udev_client = new GUdev.Client ({ "leds", "tacho-motor", "dc-motor", "servo-motor" });
     var leds = udev_client.query_by_subsystem ("leds");
-    if (leds != null) {
-        set_leds (leds, true);
-    }
+    set_leds (leds, true);
 
     loop = new MainLoop ();
     loop.run();
@@ -236,9 +237,7 @@ static int main (string[] args) {
     stop_motors (udev_client.query_by_subsystem ("dc-motor"));
     stop_motors (udev_client.query_by_subsystem ("servo-motor"));
 
-    if (leds != null) {
-        set_leds (leds, false);
-    }
+    set_leds (leds, false);
 
     Bus.unwatch_name (watch_id);
 
