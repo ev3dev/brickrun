@@ -17,6 +17,7 @@ vala2c(BRICKRUN_C_FILES
         gio-2.0
         gio-unix-2.0
         gudev-1.0
+        linux
         posix
     TARGET_GLIB
         2.48

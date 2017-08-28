@@ -35,6 +35,38 @@ const string extra_parameters = "[--] <command> [<args>...]";
 const string summary = "Runs a command remotely via console-runner-server.";
 const string description = "Note: If <args>... contains any command line options starting with '-', then it is necessary to use '--'.";
 
+
+// config file impelmentation
+namespace Config {
+    private const string status_leds_group = "status-leds";
+    private const string stop_button_group= "stop-button";
+
+    public static string status_leds_color;
+    public static string stop_button_dev_path;
+    public static int stop_button_key_code = 0;
+
+    public static void read () {
+        try {
+            var conf_file = new KeyFile ();
+            conf_file.load_from_file ("/etc/brickrun.conf", KeyFileFlags.NONE);
+            if (conf_file.has_group (status_leds_group)) {
+                status_leds_color = conf_file.get_string (status_leds_group, "color");
+            }
+            if (conf_file.has_group (stop_button_group)) {
+                stop_button_dev_path = conf_file.get_string (stop_button_group, "dev_path");
+                stop_button_key_code = conf_file.get_integer (stop_button_group, "key_code");
+            }
+        }
+        catch (KeyFileError err) {
+            warning ("Error loading /etc/brickrun.conf: %s", err.message);
+        }
+        catch (FileError err) {
+            // conf file is optional, so only debug message
+            debug ("Error opening /etc/brickrun.conf: %s", err.message);
+        }
+    }
+}
+
 static bool second_signal = false;
 
 static bool on_unix_signal (int sig) {
@@ -174,9 +206,7 @@ static void set_leds (List<GUdev.Device>? leds, bool start) {
         last_colon = color.last_index_of (":");
         color = color[1:last_colon];
 
-        // FIXME: If we have both green and blue leds, we should only use green.
-        // Or, we need a platform-specific way of dealing with LEDs.
-        if (color == "green" || color == "blue") {
+        if (color == (Config.status_leds_color ?? "green")) {
             if (start) {
                 set_sysattr_value (path, "trigger", "heartbeat");
             }
@@ -188,6 +218,47 @@ static void set_leds (List<GUdev.Device>? leds, bool start) {
             set_sysattr_value (path, "trigger", "none");
             set_sysattr_value (path, "brightness", "0");
         }
+    }
+}
+
+static void watch_stop_button () {
+    if (Config.stop_button_dev_path == null) {
+        return;
+    }
+    try {
+        var event_chan = new IOChannel.file (Config.stop_button_dev_path, "r");
+        event_chan.set_encoding (null);
+        event_chan.add_watch (IOCondition.IN, (s, c) => {
+            if (c == IOCondition.HUP) {
+                warning ("Lost button events");
+                return Source.REMOVE;
+            }
+            try {
+                // vala doesn't seem to have a good API for binary data.
+                var buf = new char[sizeof(Linux.Input.Event)];
+                size_t read;
+                var ret = s.read_chars (buf, out read);
+                if (ret == IOStatus.NORMAL) {
+                    // It takes a couple steps to convert vala array to struct
+                    void *ptr = &buf[0];
+                    Linux.Input.Event *event = ptr;
+                    if (event.type == Linux.Input.EV_KEY && event.code == Config.stop_button_key_code && event.value == 1) {
+                        // no time to be polite, we want to stop NOW!
+                        on_unix_signal (Posix.SIGKILL);
+                    }
+                }
+            }
+            catch (Error err) {
+
+            }
+            return Source.CONTINUE;
+        });
+    }
+    catch (FileError err) {
+        warning ("Failed to open stop button device: %s", err.message);
+    }
+    catch (IOChannelError err) {
+        warning ("Error initalizing stop button: %s", err.message);
     }
 }
 
@@ -223,6 +294,8 @@ static int main (string[] args) {
         return 0;
     }
 
+    Config.read ();
+
     command = args[1:args.length];
     if (command.length > 0 && command[0] == "--") {
         command = command[1:command.length];
@@ -235,9 +308,10 @@ static int main (string[] args) {
     var watch_id = Bus.watch_name (BusType.SYSTEM, console_runner_server_bus_name,
         BusNameWatcherFlags.NONE, on_bus_name_appeared, on_bus_name_vanished);
 
-    var udev_client = new GUdev.Client ({ "leds", "tacho-motor", "dc-motor", "servo-motor" });
+    var udev_client = new GUdev.Client ({ "intput", "leds", "tacho-motor", "dc-motor", "servo-motor" });
     var leds = udev_client.query_by_subsystem ("leds");
     set_leds (leds, true);
+    watch_stop_button();
 
     loop = new MainLoop ();
     loop.run();

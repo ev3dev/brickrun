@@ -55,6 +55,20 @@ ENVIRONMENT
 executes using the environment of **brickrun** rather than **conrun-server**.
 
 
+FILES
+=====
+
+**/etc/brickrun.conf**
+    Optional configuration file. Each section is optional. Example::
+
+        [status-leds]
+        color=green
+
+        [stop-button]
+        dev_path=/dev/input/by-path/platform-gpio_keys-event
+        key_code=14
+
+
 SEE ALSO
 ========
 
