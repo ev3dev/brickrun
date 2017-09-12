@@ -10,6 +10,15 @@ Documentation
 * [Online](doc/brickrun.rst)
 
 
+Install
+-------
+
+    If you are running an ev3dev "stretch" image and yet Visual Studio Code reports
+        brickrun: command not found
+    you may need to install brickrun:
+        sudo apt update && sudo apt install brickrun
+
+
 Hacking
 -------
 
