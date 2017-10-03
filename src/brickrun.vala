@@ -36,7 +36,7 @@ const string summary = "Runs a command remotely via console-runner-server.";
 const string description = "Note: If <args>... contains any command line options starting with '-', then it is necessary to use '--'.";
 
 
-// config file impelmentation
+// config file implementation
 namespace Config {
     private const string status_leds_group = "status-leds";
     private const string stop_button_group= "stop-button";
@@ -258,7 +258,7 @@ static void watch_stop_button () {
         warning ("Failed to open stop button device: %s", err.message);
     }
     catch (IOChannelError err) {
-        warning ("Error initalizing stop button: %s", err.message);
+        warning ("Error initializing stop button: %s", err.message);
     }
 }
 
@@ -286,7 +286,7 @@ static void stop_sound (List<GUdev.Device>? inputs) {
         }
         var input_parent = input.get_parent_with_subsystem ("input", null);
         if (input_parent == null) {
-            // this should not happend in practice
+            // this should not happen in practice
             continue;
         }
         var snd_cap = input_parent.get_sysfs_attr_as_int ("capabilities/snd");
