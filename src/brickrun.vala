@@ -92,6 +92,9 @@ static bool on_unix_signal (int sig) {
         }
         critical ("Failed to send signal: %s\n", e.message);
     }
+    catch (IOError e) {
+        critical ("IO error while sending signal: %s\n", e.message);
+    }
 
     return Source.CONTINUE;
 }
@@ -380,8 +383,8 @@ public interface ConsoleRunner : Object {
     public abstract void start (string[] args, HashTable<string, string> env, string cwd,
         bool pipe_stdin, UnixInputStream stdin_stream,
         bool pipe_stdout, UnixOutputStream stdout_stream,
-        bool pipe_stderr, UnixOutputStream stderr_stream) throws DBusError, ConsoleRunnerError;
-    public abstract void signal (int sig) throws DBusError, ConsoleRunnerError;
+        bool pipe_stderr, UnixOutputStream stderr_stream) throws DBusError, IOError, ConsoleRunnerError;
+    public abstract void signal (int sig) throws DBusError, IOError, ConsoleRunnerError;
     public signal void exited (int code);
     public signal void signaled (int code);
     public signal void errored (string msg);
