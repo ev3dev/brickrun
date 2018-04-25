@@ -16,7 +16,7 @@ Vcs-Browser: https://github.com/ev3dev/brickrun
 
 Package: brickrun
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, console-runner
+Depends: ${shlibs:Depends}, ${misc:Depends}, console-runner (>=1.4.0)
 Description: Command line tool for launching ev3dev programs
  This tool is used to launch ev3dev programs from the command line. It takes
  care of things like running on a virtual console and stopping motors when the
