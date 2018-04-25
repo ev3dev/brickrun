@@ -1,3 +1,9 @@
+brickrun (1.0.1) stable; urgency=medium
+
+  * Send SIGKILL to all remote processes
+
+ -- David Lechner <david@lechnology.com>  Wed, 25 Apr 2018 16:23:00 -0500
+
 brickrun (1.0.0) testing; urgency=medium
 
   * Initial release
