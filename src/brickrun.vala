@@ -77,9 +77,16 @@ static bool on_unix_signal (int sig) {
     else {
         second_signal = true;
     }
-    // signals are passed to the remote process
+
     try {
-        client.signal (sig);
+        if (sig == Posix.SIGKILL) {
+            // if we are killing, then kill all processes in the process group
+            client.signal_group (sig);
+        }
+        else {
+            // for other signals, we just send the signal to the primary process
+            client.signal (sig);
+        }
     }
     catch (ConsoleRunnerError e) {
         critical ("Failed to send signal: %s\n", e.message);
@@ -385,6 +392,7 @@ public interface ConsoleRunner : Object {
         bool pipe_stdout, UnixOutputStream stdout_stream,
         bool pipe_stderr, UnixOutputStream stderr_stream) throws DBusError, IOError, ConsoleRunnerError;
     public abstract void signal (int sig) throws DBusError, IOError, ConsoleRunnerError;
+    public abstract void signal_group (int sig) throws DBusError, IOError, ConsoleRunnerError;
     public signal void exited (int code);
     public signal void signaled (int code);
     public signal void errored (string msg);
