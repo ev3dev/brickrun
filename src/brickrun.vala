@@ -44,6 +44,7 @@ namespace Config {
     public static string status_leds_color;
     public static string stop_button_dev_path;
     public static int stop_button_key_code = 0;
+    public static int stop_button_delay = 0;
 
     public static void read () {
         try {
@@ -55,6 +56,9 @@ namespace Config {
             if (conf_file.has_group (stop_button_group)) {
                 stop_button_dev_path = conf_file.get_string (stop_button_group, "dev_path");
                 stop_button_key_code = conf_file.get_integer (stop_button_group, "key_code");
+                if (conf_file.has_key (stop_button_group, "delay")) {
+                    stop_button_delay = conf_file.get_integer (stop_button_group, "delay");
+                }
             }
         }
         catch (KeyFileError err) {
@@ -231,6 +235,8 @@ static void set_leds (List<GUdev.Device>? leds, bool start) {
     }
 }
 
+static uint stop_button_timeout_id = 0;
+
 static void watch_stop_button () {
     if (Config.stop_button_dev_path == null) {
         return;
@@ -252,9 +258,28 @@ static void watch_stop_button () {
                     // It takes a couple steps to convert vala array to struct
                     void *ptr = &buf[0];
                     Linux.Input.Event *event = ptr;
-                    if (event.type == Linux.Input.EV_KEY && event.code == Config.stop_button_key_code && event.value == 1) {
-                        // no time to be polite, we want to stop NOW!
-                        on_unix_signal (Posix.SIGKILL);
+                    if (event.type == Linux.Input.EV_KEY && event.code == Config.stop_button_key_code) {
+                        // if stop button was pressed and timeout is not pending
+                        if (stop_button_timeout_id == 0 && event.value == 1) {
+                            // if no delay, send signal right now
+                            if (Config.stop_button_delay == 0) {
+                                on_unix_signal (Posix.SIGKILL);
+                            }
+                            // otherwise schedule signal after timeout
+                            else {
+                                stop_button_timeout_id = Timeout.add_seconds (Config.stop_button_delay, () => {
+                                    on_unix_signal (Posix.SIGKILL);
+                                    stop_button_timeout_id = 0;
+                                    return Source.REMOVE;
+                                });
+                            }
+                        }
+                        // if stop button was released and timeout is pending
+                        else if (stop_button_timeout_id != 0 && event.value == 0) {
+                            // cancel the signal
+                            Source.remove (stop_button_timeout_id);
+                            stop_button_timeout_id = 0;
+                        }
                     }
                 }
             }
