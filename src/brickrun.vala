@@ -23,17 +23,19 @@ static MainLoop loop;
 static string[] command;
 
 static string? directory = null;
+static bool redirect = false;
 static bool version = false;
 
 const OptionEntry[] options = {
     { "directory" , 'd', 0, OptionArg.STRING, ref directory, "Specifies the working directory", "<dir>" },
+    { "redirect" , 'r', 0, OptionArg.NONE, ref redirect, "Redirect stdin and stdout to the calling terminal", null },
     { "version", 'v', 0, OptionArg.NONE, ref version, "Display version number and exit", null },
     { null }
 };
 
-const string extra_parameters = "[--] <command> [<args>...]";
+const string extra_parameters = "[--] <command> [<arg> [...]]";
 const string summary = "Runs a command remotely via console-runner-server.";
-const string description = "Note: If <args>... contains any command line options starting with '-', then it is necessary to use '--'.";
+const string description = "Note: If <arg> [...] contains any command line options starting with '-', then it is necessary to use '--'.";
 
 
 // config file implementation
@@ -151,8 +153,8 @@ static void on_bus_name_appeared (DBusConnection connection, string name, string
         var stderr_stream = new UnixOutputStream (stderr.fileno (), false);
 
         // finally, start the remote process
-        client.start (command, env, cwd, false, stdin_stream,
-            false, stdout_stream, true, stderr_stream);
+        client.start (command, env, cwd, redirect, stdin_stream,
+            redirect, stdout_stream, true, stderr_stream);
     }
     catch (Error e) {
         if (e is DBusError.SERVICE_UNKNOWN) {
