@@ -1,3 +1,9 @@
+brickrun (1.2.0) stable; urgency=medium
+
+  * add command line option to redirect stdin and stdout
+
+ -- David Lechner <david@lechnology.com>  Wed, 28 Nov 2018 13:17:51 -0600
+
 brickrun (1.1.0) stable; urgency=medium
 
   * Add optional config option to delay sending kill signal
