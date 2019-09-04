@@ -125,11 +125,17 @@ static void on_bus_name_appeared (DBusConnection connection, string name, string
             loop.quit ();
         });
         client.signaled.connect ((s) => {
-            stderr.printf ("Remote process ended due to signal: %s\n", strsignal (s));
+            if (s == Posix.SIGKILL) {
+                stderr.printf ("Program ended by stop button\n");
+                exitCode = 0;
+            }
+            else {
+                stderr.printf ("Program ended due to signal: %s\n", strsignal (s));
+            }
             loop.quit ();
         });
         client.errored.connect ((m) => {
-            stderr.printf ("Error: %s\n", m);
+            stderr.printf ("Program ended due to error: %s\n", m);
             loop.quit ();
         });
 
@@ -165,7 +171,7 @@ static void on_bus_name_appeared (DBusConnection connection, string name, string
         }
         else if (e is ConsoleRunnerError.FAILED) {
             DBusError.strip_remote_error (e);
-            stderr.printf ("Starting remote process failed: %s\n", e.message);
+            stderr.printf ("Starting program failed: %s\n", e.message);
         }
         else {
             stderr.printf ("Unexpected error: %s\n", e.message);
