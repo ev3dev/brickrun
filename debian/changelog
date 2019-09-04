@@ -1,3 +1,9 @@
+brickrun (1.2.1) stretch; urgency=medium
+
+  * Improve error messages
+
+ -- David Lechner <david@lechnology.com>  Wed, 04 Sep 2019 08:35:34 -0500
+
 brickrun (1.2.0) stable; urgency=medium
 
   * add command line option to redirect stdin and stdout
