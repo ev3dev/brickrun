@@ -73,17 +73,7 @@ namespace Config {
     }
 }
 
-static bool second_signal = false;
-
 static bool on_unix_signal (int sig) {
-    if (second_signal) {
-        // No more Mr. Nice Guy after the first signal.
-        sig = Posix.SIGKILL;
-    }
-    else {
-        second_signal = true;
-    }
-
     try {
         if (sig == Posix.SIGKILL) {
             // if we are killing, then kill all processes in the process group
