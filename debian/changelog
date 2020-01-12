@@ -1,3 +1,9 @@
+brickrun (1.2.2) stretch; urgency=medium
+
+  * Don't elevate repeated signals to SIGKILL
+
+ -- David Lechner <david@lechnology.com>  Sat, 11 Jan 2020 18:38:20 -0600
+
 brickrun (1.2.1) stretch; urgency=medium
 
   * Improve error messages
