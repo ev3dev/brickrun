@@ -382,7 +382,7 @@ static int main (string[] args) {
     var watch_id = Bus.watch_name (BusType.SYSTEM, console_runner_server_bus_name,
         BusNameWatcherFlags.NONE, on_bus_name_appeared, on_bus_name_vanished);
 
-    var udev_client = new GUdev.Client ({ "intput", "leds", "tacho-motor", "dc-motor", "servo-motor" });
+    var udev_client = new GUdev.Client ({ "input", "leds", "tacho-motor", "dc-motor", "servo-motor" });
     var leds = udev_client.query_by_subsystem ("leds");
     set_leds (leds, true);
     watch_stop_button();
